@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Clock</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- <script src="Clock.js"></script> -->
+        <script>
+            function setup() {
+                createCanvas(400, 400);
+                frameRate(30);
+                textAlign(CENTER, CENTER);
+            }
+
+            function Hours() {
+                var now = new Date();
+
+                return (now.getSeconds() / 60 + now.getMinutes()) / 60 + now.getHours();
+            }
+
+            function Minutes() {
+                return Date.now() / 60000 % 60
+            }
+
+            function Seconds() {
+                return Date.now() / 1000 % 60;
+            }
+
+            function sig(x) {
+                return 1 / (1 + Math.exp(-x));
+            }
+
+            let n = 0;
+
+            function draw() {
+                translate(200, 200);
+                if (isNight) {
+                    background(0);
+                    stroke(255);
+                } else {
+                    background(255);
+                    stroke(0);
+                }
+
+                noFill();
+                ellipse(0, 0, 390);
+                ellipse(0, 0, 330);
+                ellipse(0, 0, 270);
+
+                line(0, -135, 0, -195);
+                noStroke();
+
+                if (isNight) {
+                    fill(255);
+                } else {
+                    fill(0);
+                }
+
+                let hour = Hours() % 12;
+                let minute = Minutes() / 5;
+                let second = Seconds() / 5;
+
+                for (let i = 0; i < 12; i++) {
+                    let h = sig((i - hour + 18) % 12 - 6) * 2;
+                    let m = sig((i - minute + 18) % 12 - 6) * 2;
+                    let s = sig((i - second + 18) % 12 - 6) * 2;
+
+                    let hX = -sin(h * PI) * 180;
+                    let hY = cos(h * PI) * 180;
+
+                    let mX = -sin(m * PI) * 150;
+                    let mY = cos(m * PI) * 150;
+
+                    let sX = -sin(s * PI) * 120;
+                    let sY = cos(s * PI) * 120;
+
+                    if (i == 0) {
+                        text(12, hX, hY);
+                        text(60, mX, mY);
+                        text(60, sX, sY);
+                    } else {
+                        text(i, hX, hY);
+                        text(i * 5, mX, mY);
+                        text(i * 5, sX, sY);
+                    }
+                }
+            }
+
+            let isNight = false;
+
+            function night() {
+                if (isNight) {
+                    document.body.style.backgroundColor = "#fff";
+                } else {
+                    document.body.style.backgroundColor = "#000";
+                }
+                isNight = !isNight;
+            }
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                width: fit-content;
+            }
+        </style>
+    </head>
+
+    <body>
+        <button onclick="night()">Toggle Darkmode</button>
+    </body>
+
+</html>

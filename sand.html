@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            body {
+                margin: 0;
+                display: flex;
+            }
+
+            canvas {
+                border: 1px solid black;
+                margin: auto;
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="main"></canvas>
+        <!-- <input id="heightInput" type="range" step="1" min="1" max="10"></input> -->
+        <script>
+            let blockSize = 5;
+
+            let width = 100;
+            let height = 100;
+
+            let canvas = document.getElementById("main");
+            // let heightInput = document.getElementById("heightInput");
+
+            let mouseDown = -1;
+            let mouseX = 0;
+            let mouseY = 0;
+            /*canvas.addEventListener("click", (e) => {
+                onClick(Math.floor(e.clientX / blockSize), Math.floor(e.clientY / blockSize));
+            });*/
+            canvas.addEventListener("mousedown", (e) => mouseDown = e.button);
+            document.addEventListener("mouseup", () => mouseDown = -1);
+            canvas.addEventListener("mousemove", (e) => {
+                mouseX = Math.floor(e.layerX / blockSize);
+                mouseY = Math.floor(e.layerY / blockSize);
+            });
+            canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+            canvas.width = width * blockSize;
+            canvas.height = height * blockSize;
+            let context = canvas.getContext("2d");
+
+            let map = new Array(width * height).fill(0);
+
+            /*for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    map[x + y * width] = Math.floor(
+                        ((x - width / 2) ** 2 + (y - height / 2) ** 2) /  125
+                    );
+                }
+            }*/
+
+            /*function onClick(x, y) {
+                map[x + y * width] = 1;
+            }*/
+
+            function getColor(h) {
+                return `rgb(${h * 10 + 50}, ${h * 10 + 50}, ${h * 10 + 50})`;
+            }
+
+            function step() {
+                function sand(x, y, element) {
+                    if (y + 1 == height) return;
+                    if (map[x + (y + 1) * width] == 0) {
+                        map[x + (y + 1) * width] = element;
+                        map[x + y * width] = 0;
+                        return;
+                    } else if(map[x + (y + 1) * width] == 2) {
+                        map[x + (y + 1) * width] = element;
+                        map[x + y * width] = 2;
+                        return;
+                    }
+                    let l = x - 1 >= 0 && map[(x - 1) + (y + 1) * width] == 0;
+                    let r = x + 1 < width && map[(x + 1) + (y + 1) * width] == 0;
+
+                    if (l && r) {
+                        // randomly fall to left or right
+                        if (Math.random() < 0.5) {
+                            l = false;
+                        } else {
+                            r = false;
+                        }
+                    }
+
+                    if (l) {
+                        map[(x - 1) + (y + 1) * width] = element;
+                        map[x + y * width] = 0;
+                    } else if (r) {
+                        map[(x + 1) + (y + 1) * width] = element;
+                        map[x + y * width] = 0;
+                    }
+                }
+
+                function water(x, y, element) {
+                    if (y + 1 < height) {
+                        if (map[x + (y + 1) * width] == 0) {
+                            map[x + (y + 1) * width] = element;
+                            map[x + y * width] = 0;
+                            return;
+                        }
+
+                        let l = x - 1 >= 0 && map[(x - 1) + (y + 1) * width] == 0;
+                        let r = x + 1 < width && map[(x + 1) + (y + 1) * width] == 0;
+
+                        if (l && r) {
+                            // randomly fall to left or right
+                            if (Math.random() <= 0.5) {
+                                l = false;
+                            } else {
+                                r = false;
+                            }
+                        }
+
+                        if (l) {
+                            map[(x - 1) + (y + 1) * width] = element;
+                            map[x + y * width] = 0;
+                            return;
+                        }
+                        if (r) {
+                            map[(x + 1) + (y + 1) * width] = element;
+                            map[x + y * width] = 0;
+                            return;
+                        }
+                    }
+
+                    let l = x > 0 && map[(x - 1) + y * width] == 0;
+                    let r = x + 1 < width && map[(x + 1) + y * width] == 0;
+                    if (l && r) {
+                        // randomly go to left or right
+                        if (Math.random() < 0.5) {
+                            l = false;
+                        } else {
+                            r = false;
+                        }
+                    }
+                    if (l) {
+                        map[(x - 1) + y * width] = element;
+                        map[x + y * width] = 0;
+                        return;
+                    }
+                    if (r) {
+                        map[(x + 1) + y * width] = element;
+                        map[x + y * width] = 0;
+                        return;
+                    }
+                }
+
+                if (mouseDown == 0) {
+                    map[mouseX + mouseY * width] = 1;
+                } else if (mouseDown == 2) {
+                    map[mouseX + mouseY * width] = 2;
+                }
+
+                for (let y = height - 1; y >= 0; y--) {
+                    for (let x = 0; x < width; x++) {
+                        const element = map[x + y * width];
+
+                        switch (element) {
+                            case 1:
+                                sand(x, y, element);
+                                break;
+                            case 2:
+                                water(x, y, element);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            let t = 0;
+
+            function draw() {
+                context.clearRect(0, 0, width * blockSize, height * blockSize);
+
+                step();
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const element = map[x + y * width];
+
+                        if (element == 1) {
+                            context.fillStyle = "#FFFF00";
+                            context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                        } else if (element == 2) {
+                            context.fillStyle = "#0000FF";
+                            context.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+                        }
+                    }
+                }
+
+                requestAnimationFrame(draw);
+            }
+
+            requestAnimationFrame(draw);
+        </script>
+    </body>
+
+</html>

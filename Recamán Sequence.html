@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <style>
+            body {
+                margin: 0;
+                background-color: black;
+                overflow: hidden;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+        <title>Recamán Sequence</title>
+    </head>
+
+    <body>
+        <script>
+            const scale = 0.05;
+
+            let pos = 0;
+            let step = 1;
+            let used = new Array(100000).fill(false);
+
+            function next() {
+                let left = pos - step;
+
+                if (left > 0 && !used[left]) {
+                    pos -= step;
+                } else {
+                    pos += step;
+                }
+
+                if (pos > used.length) {
+                    throw "out of storage";
+                }
+
+                used[pos] = true;
+
+                step++;
+            }
+
+            function setup() {
+                createCanvas(window.innerWidth, window.innerHeight);
+                colorMode(HSB, 100);
+                // stroke(255);
+                noFill();
+                frameRate(60);
+            }
+
+            function draw() {
+                for (let i = 0; i < 10; i++) {
+                    let size = step;
+
+                    let start = pos;
+                    next();
+                    let end = pos;
+
+                    let center = (start + pos) / 2;
+
+                    stroke((size / 20) % 100, 100, 100);
+
+                    if (size % 2 == 0) {
+                        arc(center * scale, height / 2, size * scale, size * scale, PI, TWO_PI);
+                    } else {
+                        arc(center * scale, height / 2, size * scale, size * scale, 0, PI);
+                    }
+                }
+            }
+        </script>
+    </body>
+
+</html>

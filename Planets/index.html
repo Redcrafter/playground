@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <script src="index.js"></script>
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+
+            #info {
+                position: fixed;
+                top: 0;
+                left: 0;
+                margin: 5px;
+                padding: 5px;
+                border: 2px solid black;
+                border-radius: 5px;
+
+                display: grid;
+                grid-template-columns: auto auto;
+            }
+
+            input {
+                width: 100px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="main"></canvas>
+        <div id="info">
+            <span>Radius</span><input id="radiusInput">
+            <span>Mass</span><input id="massInput">
+            <div style="grid-column: 1/3">
+                <span>Velocity</span><br>
+                X<input id="xVel"> Y<input id="yVel">
+            </div>
+            <div style="grid-column: 1/3;">
+                <span>Position</span><br>
+                X<input id="xPos"> Y<input id="yPos">
+            </div>
+            <span>Follow</span><input type="checkbox" id="followInput">
+        </div>
+    </body>
+
+</html>

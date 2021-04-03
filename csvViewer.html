@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CSV Viewer</title>
+        <style>
+            table {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+
+            th,
+            td {
+                border: 1px solid;
+                padding: 4px;
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+
+    <body>
+        <input id="upload" type="file">
+        <div>
+            <table id="table"></table>
+        </div>
+        <script>
+            let fileInput = document.getElementById("upload");
+            let table = document.getElementById("table");
+
+            fileInput.addEventListener("change", () => {
+                let file = fileInput.files[0];
+
+                let reader = new FileReader();
+                reader.readAsText(file);
+
+                reader.onload = () => loadCsv(reader.result);
+                reader.onerror = () => alert(`Error:\n${reader.error}`);
+            });
+
+            function parseCsv(text, separator = ",") {
+                let res = [];
+                let row = [];
+
+                let inString = false;
+
+                let spelling = "";
+
+                for (let i = 0; i < text.length; i++) {
+                    if (text[i] == separator && !inString) {
+                        row.push(spelling);
+                        spelling = "";
+
+                        if (text[i + 1] == '"') {
+                            i++;
+                            inString = true;
+                        }
+                        continue;
+                    }
+
+                    switch (text[i]) {
+                        case '"':
+                            if (inString) {
+                                if (text[i + 1] == '"') {
+                                    i++;
+                                    spelling += '"';
+                                } else {
+                                    inString = false;
+                                    while (text[i + 1] != separator && text[i + 1] != "\n") {
+                                        i++;
+                                    }
+                                }
+                            }
+                            break;
+                        case '\n':
+                            if (!inString) {
+                                row.push(spelling);
+                                spelling = "";
+                                res.push(row);
+                                row = [];
+                            } else {
+                                spelling += text[i];
+                            }
+                            break;
+                        default:
+                            spelling += text[i];
+                            break;
+                    }
+                }
+
+                if (spelling != "") {
+                    row.push(spelling);
+                }
+                if (row.length != 0) {
+                    res.push(row);
+                }
+                return res;
+            }
+
+            function loadCsv(text) {
+                let data = parseCsv(text);
+
+                // let head = document.createElement("thead");
+                // let headRow = document.createElement("tr");
+
+
+                let body = document.createElement("tbody");
+                for (let i = 0; i < data.length; i++) {
+                    const dat = data[i];
+
+                    let row = document.createElement("tr");
+
+                    for (let j = 0; j < dat.length; j++) {
+                        let el = document.createElement("td");
+
+                        let text = document.createElement("div");
+                        text.innerHTML = dat[j];
+                        el.appendChild(text);
+
+                        /*if (j == 0) {
+                            let button = document.createElement("button");
+                            button.innerText = "X";
+                            button.addEventListener("click", () => {
+                                body.removeChild(row);
+                            });
+                            el.append(button);
+                        }*/
+
+                        row.appendChild(el);
+                    }
+
+                    body.appendChild(row);
+                }
+
+                table.appendChild(body);
+            }
+        </script>
+    </body>
+
+</html>

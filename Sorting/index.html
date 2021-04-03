@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Sorting</title>
+        <script src="display.js" type="module"></script>
+        <style>
+            body {
+                margin: 0;
+                display: flex;
+                height: 100vh;
+            }
+
+            #buttons {
+                display: flex;
+                flex-direction: column;
+                background-color: white;
+            }
+
+            #container {
+                background-color: black;
+                flex-grow: 1;
+            }
+
+            canvas {
+                position: absolute;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="buttons">
+            <lable>Size</lable><input type="number" name="size" id="sizeInput" min="2" max="2048" value="512">
+            <label>Speed</label><input type="number" name="speed" id="speedInput" value="5" min="0.1" max="50">
+            <label>Method</label><select id="methodInput">
+                <option>Ramp</option>
+                <option>RampDots</option>
+                <option>RampConnectedDots</option>
+                <option>Circle</option>
+                <option>CircleDots</option>
+                <option>Rect</option>
+            </select>
+            <br>
+        </div>
+        <div id="container">
+            <canvas id="main"></canvas>
+        </div>
+    </body>
+
+</html>

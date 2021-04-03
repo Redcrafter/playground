@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <style>
+            body {
+                margin: 0;
+                background-color: black;
+                overflow: hidden;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+        <title>Logistic map</title>
+    </head>
+
+    <body>
+        <script>
+            function iter(lambda) {
+                let x = Math.random();
+
+                for (let i = 0; i < 1000; i++) {
+                    x = lambda * x * (1 - x);
+                }
+
+                return x;
+            }
+
+            function setup() {
+                createCanvas(window.innerWidth, window.innerHeight);
+                // colorMode(HSB, 100);
+                stroke(255, 255, 255, 32);
+                frameRate(60);
+            }
+
+            const start = 3.5;
+            let x = start;
+
+            function draw() {
+                for (let i = 0; i < 10000; i++) {
+                    if (x > 4) {
+                        noLoop();
+                        break;
+                    }
+
+                    let y = iter(x);
+
+                    point(((x - start) / 0.5) * width, ((0.5 - y) * 1000) + height / 2);
+
+                    x += 0.0000001;
+                }
+            }
+        </script>
+    </body>
+
+</html>
