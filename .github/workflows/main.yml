@@ -29,6 +29,8 @@ jobs:
       - run: npm install typescript
       - run: tsc || true
 
+      - run: rm .gitignore
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
