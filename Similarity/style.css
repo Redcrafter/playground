@@ -1,0 +1,49 @@
+body {
+    background-color: black;
+    color: white;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    border: 1px solid white;
+}
+
+
+#out {
+    display: flex;
+    /* justify-content: space-evenly; */
+}
+
+.data {
+    display: grid;
+    grid-template-columns: auto repeat(16, auto);
+
+    column-gap: 4px;
+    row-gap: 4px;
+
+    margin: 10px 10px 0;
+}
+
+.data>span {
+    /* width: 16px;
+    height: 18px; */
+    user-select: none;
+}
+
+.selected {
+    background-color: white;
+    color: black;
+}
+
+.diff {
+    color: red;
+}
+.sub {
+    color: green;
+}
+.index {
+    color: gray;
+}

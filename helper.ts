@@ -57,7 +57,7 @@ export function hslToRgb(h: number, s: number, l: number): [number, number, numb
     return [r * 255, g * 255, b * 255];
 }
 
-export function rgbToHex(v: [number, number, number]) {
+export function rgbToHex(v: number[]) {
     return '#' + v.map(x => x.toString(16).padStart(2, '0')).join('');
 }
 

@@ -1,42 +1,69 @@
+import { createCanvas, context, canvas, circle, arrow } from "../framework.js";
+
+let elements = {
+    followBox: document.getElementById("followBox") as HTMLInputElement,
+    speedSlider: document.getElementById("speedSlider") as HTMLInputElement
+}
+
 interface Point {
     x: number;
     y: number;
 }
 
-const count = 50;
-const acc = 0.0005;
 const points: Point[] = [];
 let lastPoint = null;
 
 let speed = 0.0005;
 let follow = false;
 
-// const d = 'd="M 39.708934,63.678683 C 39.317094,65.77065 41.499606,70.115061 45.890584,70.256984 C 51.19892,70.428558 54.590321,66.367906 53.010333,59.740875 L 45.086538,23.171517 C 44.143281,18.81826 44.851281,16.457097 45.354941,15.049945 C 46.698676,11.295749 50.055822,9.7473042 50.873134,10.949208 C 51.339763,11.635413 52.468042,14.844006 49.256275,20.590821 C 46.751378,25.072835 35.096985,30.950138 34.2417,41.468011 C 33.501282,50.614249 43.075689,57.369301 51.339266,54.71374 C 56.825686,52.950639 59.653965,44.62402 56.258057,40.328987 C 47.29624,28.994371 32.923702,46.341263 46.846564,51.0935 C 45.332604,49.90238 44.300646,48.980054 44.1085,47.852721 C 42.237755,36.876941 58.741182,39.774741 54.294493,50.18735 C 52.466001,54.469045 45.080341,55.297323 40.874269,51.477433 C 37.350853,48.277521 35.787387,42.113231 39.708327,37.687888 C 45.018831,31.694223 51.288782,26.31366 52.954064,18.108736 C 54.923313,8.4061491 48.493821,0.84188926 44.429027,10.385835 C 43.065093,13.588288 42.557016,16.803074 43.863006,22.963534 L 51.780549,60.311215 C 52.347386,62.985028 51.967911,66.664419 49.472374,68.355474 C 48.236187,69.193154 43.861784,69.769668 42.791575,67.770092"';
-const d = 'd="m 648.5,1242 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-48 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-16 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-48 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -48,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-48 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 16,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,48 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-48 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 16,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,48 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -48,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,48 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,16 -16,0 0,16 16,0 0,32 -16,0 0,-16 -16,0 0,16 -16,0 0,-32 16,0 0,-16 -32,0 0,16 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,48 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 32,0 0,-16 16,0 0,16 32,0 0,-16 -16,0 0,-16 16,0 0,-16 -32,0 0,16 -16,0 0,-32 16,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 48,0 0,-16 -16,0 0,-32 16,0 0,16 16,0 0,-16 16,0 0,32 -16,0 0,16 16,0 0,32 -16,0 0,-16 -32,0 0,16 16,0 0,16 -16,0 0,16 32,0 0,-16 16,0 0,16"';
-// const d = 'd="M 39.708934,63.678683 C 39.317094,65.77065 41.499606,70.115061 45.890584,70.256984 C 51.19892,70.428558 54.590321,66.367906 53.010333,59.740875 L 45.086538,23.171517 C 44.143281,18.81826 44.851281,16.457097 45.354941,15.049945 C 46.698676,11.295749 50.055822,9.7473042 50.873134,10.949208 C 51.339763,11.635413 52.468042,14.844006 49.256275,20.590821 C 46.751378,25.072835 35.096985,30.950138 34.2417,41.468011 C 33.501282,50.614249 43.075689,57.369301 51.339266,54.71374 C 56.825686,52.950639 59.653965,44.62402 56.258057,40.328987 C 47.29624,28.994371 32.923702,46.341263 46.846564,51.0935 C 45.332604,49.90238 44.300646,48.980054 44.1085,47.852721 C 42.237755,36.876941 58.741182,39.774741 54.294493,50.18735 C 52.466001,54.469045 45.080341,55.297323 40.874269,51.477433 C 37.350853,48.277521 35.787387,42.113231 39.708327,37.687888 C 45.018831,31.694223 51.288782,26.31366 52.954064,18.108736 C 54.923313,8.4061491 48.493821,0.84188926 44.429027,10.385835 C 43.065093,13.588288 42.557016,16.803074 43.863006,22.963534 L 51.780549,60.311215 C 52.347386,62.985028 51.967911,66.664419 49.472374,68.355474 C 48.236187,69.193154 43.861784,69.769668 42.791575,67.770092"';
-
-const path = SVG('<path ' + d + ' />');
-const pathLength = path.length();
-let currentLength = 0;
-
 let t = 0;
-let vectors = [];
+let vectors: {
+    x: number;
+    y: number;
 
-let scale = 8;
+    length: number;
+    rot: number;
 
-function setup() {
-    createCanvas(window.innerWidth, window.innerHeight);
-    noFill();
-}
+    x0: number;
+    y0: number;
+
+    x1: number;
+    y1: number;
+}[] = [];
+
+let scale = 0.01;
+
+createCanvas();
+
+elements.followBox.addEventListener("click", () => follow = elements.followBox.checked);
+elements.speedSlider.addEventListener("input", () => speed = elements.speedSlider.valueAsNumber);
+
+fetch("./data.json").then(x => x.json()).then(x => {
+    vectors = x.note.vectors;
+    scale = x.note.scale;
+    for (const v of vectors) {
+        v.length = Math.sqrt(v.x * v.x + v.y * v.y);
+        v.rot = Math.atan2(v.y, v.x);
+    }
+    // vectors = calcVectors(100, 0.005, x.note.svg);
+
+    requestAnimationFrame(draw);
+});
 
 function draw() {
-    background(0);
+    context.resetTransform();
+    context.fillStyle = "#000";
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
     let val = 2 * Math.PI * t;
     let x = 0;
     let y = 0;
 
-    function stuff(n) {
+    let p = new Path2D()
+
+    const count = (vectors.length - 1) / 2;
+
+    function stuff(n: number) {
         const el = vectors[n + count];
 
         const re = Math.cos(n * val);
@@ -55,7 +82,8 @@ function draw() {
         el.y1 = y;
     }
 
-    stuff(0);
+    // ignore first one to center drawing
+    // stuff(0);
     for (let n = 1; n <= count; n++) {
         stuff(n);
         stuff(-n);
@@ -63,9 +91,9 @@ function draw() {
     //#endregion
 
     if (follow) {
-        translate(-x * scale + width / 2, -y * scale + height / 2);
+        context.translate(-x * scale + canvas.width / 2, -y * scale + canvas.height / 2);
     } else {
-        translate(width / 2, height / 2);
+        context.translate(canvas.width / 2, canvas.height / 2);
     }
 
     //#region Draw points
@@ -95,10 +123,9 @@ function draw() {
         }
     }
 
-
-    stroke(255, 255, 0);
-    drawingContext.beginPath();
-    drawingContext.moveTo(points[0].x * scale, points[0].y * scale);
+    context.strokeStyle = "#ff0";
+    context.beginPath();
+    context.moveTo(points[0].x * scale, points[0].y * scale);
 
     for (let i = 1; i < points.length; i++) {
         // stroke((i / points.length) * 255, (i / points.length) * 255, 0);
@@ -107,34 +134,34 @@ function draw() {
         // last = next;
 
         const next = points[i];
-        drawingContext.lineTo(next.x * scale, next.y * scale);
+        context.lineTo(next.x * scale, next.y * scale);
     }
-    drawingContext.stroke();
-    drawingContext.closePath();
+    context.stroke();
+    context.closePath();
     //#endregion
 
     //#region Draw lines
-    noStroke();
-    fill(255);
+    context.fillStyle = "#fff";
     // line(0, 0, asdf[count].x * scale, asdf[count].y * scale);
     for (let i = count; i > 0; i--) {
         const b = vectors[count - i];
         // line(b.x0 * scale, b.y0 * scale, b.x1 * scale, b.y1 * scale);
-        arrow(b.x0 * scale, b.y0 * scale, b.length * scale, -i * val + b.rot);
+        arrow(b.x0 * scale, b.y0 * scale, b.length * scale, -i * val + b.rot, 20);
+        context.fill();
 
         const a = vectors[count + i];
-        arrow(a.x0 * scale, a.y0 * scale, a.length * scale, i * val + a.rot);
+        arrow(a.x0 * scale, a.y0 * scale, a.length * scale, i * val + a.rot, 20);
+        context.fill();
         // line(a.x0 * scale, a.y0 * scale, a.x1 * scale, a.y1 * scale);
     }
 
-    noFill();
-    stroke(173, 216, 230, 64);
+    context.strokeStyle = "#add8e664";
     for (let i = count; i > 0; i--) {
         const b = vectors[count - i];
-        ellipse(b.x0 * scale, b.y0 * scale, b.length * scale * 2);
+        circle(b.x0 * scale, b.y0 * scale, b.length * scale * 2);
 
         const a = vectors[count + i];
-        ellipse(a.x0 * scale, a.y0 * scale, a.length * scale * 2);
+        circle(a.x0 * scale, a.y0 * scale, a.length * scale * 2);
     }
 
     // stroke(64);
@@ -145,85 +172,55 @@ function draw() {
     if (added && t > 1) {
         points.shift();
     }
+
+    requestAnimationFrame(draw);
 }
-
-function integrate(n) {
-    // let sum = 0;
-    let xSum = 0;
-    let ySum = 0;
-
-    let t = 0;
-
-    while (t < 1) {
-        const res = path.pointAt(t * pathLength);
-        const val = -n * 2 * Math.PI * t;
-
-        const re = Math.cos(val);
-        const im = Math.sin(val);
-
-        xSum += res.x * re - res.y * im;
-        ySum += res.x * im + res.y * re;
-
-        t += acc;
-    }
-
-    return {
-        x: xSum * acc,
-        y: ySum * acc
-    };
-}
-
-function mouseWheel(e) {
-    if (e.delta > 0) {
+canvas.addEventListener("wheel", e => {
+    if (e.deltaY > 0) {
         scale /= 1.2;
     } else {
         scale *= 1.2;
     }
+}, { passive: true });
+
+function calcVectors(count: number, acc: number, data: string) {
+    function integrate(f: number) {
+        // let sum = 0;
+        let xSum = 0;
+        let ySum = 0;
+
+        let t = 0;
+
+        while (t < 1) {
+            const res = path.getPointAtLength(t * pathLength);
+            const val = -2 * Math.PI * f * t;
+
+            const re = Math.cos(val);
+            const im = Math.sin(val);
+
+            xSum += res.x * re - res.y * im;
+            ySum += res.x * im + res.y * re;
+
+            t += acc;
+        }
+
+        return {
+            x: xSum * acc,
+            y: ySum * acc
+        };
+    }
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", data);
+
+    const pathLength = path.getTotalLength();
+    let vectors = new Array(count * 2 + 1);
+
+    for (let i = -count; i <= count; i++) {
+        vectors[i + count] = integrate(i);
+    }
+
+    console.log(JSON.stringify(vectors));
+
+    return vectors;
 }
-
-function arrow(x0, y0, l, r) {
-    let cos = Math.cos(r);
-    let sin = Math.sin(r);
-
-    let headSize = l / 20;
-    let arrowWidth = l / 100;
-
-    beginShape();
-
-    vertex(x0 + cos * l, y0 + sin * l); // Tip
-
-    vertex(x0 + cos * (l - 2 * headSize) + sin * headSize, y0 - cos * headSize + sin * (l - 2 * headSize)); // Top
-    vertex(x0 + cos * (l - 2 * headSize) + sin * arrowWidth, y0 - cos * arrowWidth + sin * (l - 2 * headSize)); // Top mid
-
-
-    vertex(x0 + sin * arrowWidth, y0 - cos * arrowWidth); // back top
-    vertex(x0 - sin * arrowWidth, y0 + cos * arrowWidth); // back bottom
-
-    vertex(x0 + cos * (l - 2 * headSize) - sin * arrowWidth, y0 + cos * arrowWidth + sin * (l - 2 * headSize)); // Bottom mid
-    vertex(x0 + cos * (l - 2 * headSize) - sin * headSize, y0 + cos * headSize + sin * (l - 2 * headSize)); // Bottom
-
-    endShape(CLOSE);
-}
-
-window.addEventListener("load", () => {
-    document.getElementById("followBox").addEventListener("click", (e) => {
-        follow = e.target.checked;
-    });
-
-    document.getElementById("speedSlider").addEventListener("input", (e) => {
-        speed = parseFloat(e.target.value);
-    });
-});
-
-for (let i = -count; i <= count; i++) {
-    let v = integrate(i);
-    v.length = Math.sqrt(v.x * v.x + v.y * v.y);
-    v.rot = Math.atan2(v.y, v.x);
-    vectors[i + count] = v;
-}
-
-// Center drawing
-vectors[count] = {
-    x: 0,
-    y: 0
-};

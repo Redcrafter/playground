@@ -12,6 +12,10 @@ interface Point {
     x: number;
     y: number;
 }
+interface Line {
+    a: Point;
+    b: Point;
+}
 type Triangle = [Point, Point, Point];
 
 let points: Point[] = [];
@@ -159,7 +163,19 @@ function resize() {
 }
 
 function drawPoint(p: Point) {
-    context.fillRect(p.x * scale - scale / 2, p.y * scale - scale / 2, scale - 1, scale - 1);
+    context.beginPath();
+    context.ellipse(p.x * scale, p.y * scale, scale - 1, scale - 1, 0, 0, Math.PI * 2);
+    context.closePath();
+    context.fill();
+    context.stroke();
+    // context.fillRect(p.x * scale - scale / 2, p.y * scale - scale / 2, scale - 1, scale - 1);
+}
+function drawLine(l: Line) {
+    context.beginPath();
+    context.moveTo(l.a.x * scale, l.a.y * scale);
+    context.lineTo(l.b.x * scale, l.b.y * scale);
+    context.closePath();
+    context.stroke();
 }
 function drawCirc(t: Triangle) {
     context.beginPath();
@@ -221,6 +237,14 @@ function draw() {
     context.clearRect(0, 0, width, height);
     context.translate(width / 2 - 50 * scale, height / 2 - 50 * scale);
 
+    let lines = [];
+
+    function addLine(a, b) {
+        if (!lines.some(x => x.a === a && x.b === b || x.a === b && x.b === a)) {
+            lines.push({ a, b });
+        }
+    }
+
     for (let i = 0; i < triangulation.length; i++) {
         const t = triangulation[i];
 
@@ -229,13 +253,18 @@ function draw() {
         // context.fillStyle = rgbToHex(hsvToRgb((i / 10) % 360, 1, 1));
         context.fillStyle = "#AAA";
         context.strokeStyle = "#000";
-        drawTri(t, false);
+        addLine(t[0], t[1]);
+        addLine(t[1], t[2]);
+        addLine(t[2], t[0]);
+        // drawTri(t, false);
 
         // context.strokeStyle = "#AAA";
         // drawCirc(t);
     }
 
-    context.fillStyle = "#000";
+    lines.forEach(drawLine)
+
+    context.fillStyle = "#fff";
     points.forEach(drawPoint);
     context.strokeRect(0, 0, 100 * scale, 100 * scale);
 

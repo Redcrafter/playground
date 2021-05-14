@@ -78,8 +78,8 @@ export default class Array {
     }
 
     public async Shuffle() {
-        for (let i = 0; i < this.array.length; i++) {
-            await this.Swap(i, Math.floor(Math.random() * this.array.length));
+        for (let i = this.array.length - 1; i > 0; i--) {
+            await this.Swap(i, Math.floor(Math.random() * (i + 1)));
         }
 
         this.swapped = [];

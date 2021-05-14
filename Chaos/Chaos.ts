@@ -1,27 +1,49 @@
-const scalee = (window.innerWidth > window.innerHeight ? window.innerHeight : window.innerWidth) / 40;
-const hW = window.innerWidth / 2;
-const hH = window.innerHeight / 2;
+import { createCanvas } from "../framework.js";
+
+// const scalee = (window.innerWidth > window.innerHeight ? window.innerHeight : window.innerWidth) / 40;
+let scale = 250;
 
 const tRange = 2;
 const pointCount = 500;
-const steps = 500;
+const delta_per_step = 1e-5;
+const delta_minimum = 1e-8;
+const speed_mult = 1;
+
 const base27 = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const param: number[] = [];
+
+interface Point {
+    x: number;
+    y: number;
+}
+
 const colors = new Uint8Array(pointCount * 3);
-const points = new Array(pointCount);
-// const good = ["Q_NRLG", "QOORGF", "CZHOWK", "RRQBFH", "VPTQVZ", "MWRSOI", "LIELMS", "ATYLGC", "AYXKRC", "T_ZOJJ", "BBSSQW", "GHUSCK", "EPYCUR", "FERLDW", "QVEFMJ", "HXNPOC", "BADJID", "HOBNXY, CF_JFV, BYOMND, AMAOHJ, HVJXRY, AZUIKA", "MRZHLC", "FZCRZJ", "CMZMME", "ROKEDQ", "ASHQ_D", "WEDFYE", "XZEXGK", "PJBRSP"];
-// GPDK_P, RIVNKU, O_NEVU 
+const points: Point[] = new Array(pointCount);
+for (let i = 0; i < pointCount; i++) {
+    points[i] = { x: 0, y: 0 };
+}
+
+const good = ["VKDI_J", "DPPREG", "Q_NRLG", "QOORGF", "CZHOWK", "RRQBFH", "VPTQVZ", "MWRSOI", "LIELMS", "ATYLGC", "AYXKRC", "T_ZOJJ", "BBSSQW", "GHUSCK", "EPYCUR", "FERLDW", "QVEFMJ", "HXNPOC", "BADJID", "HOBNXY, CF_JFV, BYOMND, AMAOHJ, HVJXRY, AZUIKA", "MRZHLC", "FZCRZJ", "CMZMME", "ROKEDQ", "ASHQ_D", "WEDFYE", "XZEXGK", "PJBRSP", "GPDK_P", "RIVNKU", "O_NEVU", "HFXERR", "RIKMFJ", "DVLNWO"];
 
 const loadInput = document.getElementById("loadInput") as HTMLInputElement;
 const loadButton = document.getElementById("loadButton") as HTMLButtonElement;
 const autoInput = document.getElementById("autoInput") as HTMLInputElement;
+const codeText = document.getElementById("codeText");
+const dText = document.getElementById("dText") as HTMLParagraphElement;
+const timeText = document.getElementById("timeText") as HTMLParagraphElement;
+const fpsText = document.getElementById("fpsText") as HTMLParagraphElement;
 
-let delta = 0.001;
+let rolling_delta = delta_per_step;
+
 let t = -tRange;
-let auto = false;
-let data: Uint8Array;
-let startTime = performance.now();
+let auto = true;
+let data: Uint8ClampedArray;
+let pixels: ImageData;
+
 let fps = 60;
+
+let xOff = 0;
+let yOff = 0;
 
 loadButton.addEventListener("click", () => {
     load(loadInput.value);
@@ -32,19 +54,17 @@ autoInput.addEventListener("change", () => {
 
 function hPoint(p: number, i: number) {
     const pos = 4 * p;
-    const diff = data[pos + 3];
+    i = (i * 3) | 0;
 
-    if (diff !== 255) {
-        i = (i * 3) | 0;
-        data[pos] = colors[i];
-        data[pos + 1] = colors[i + 1];
-        data[pos + 2] = colors[i + 2];
-        data[pos + 3] = 255;
+    data[pos] = colors[i];
+    data[pos + 1] = colors[i + 1];
+    data[pos + 2] = colors[i + 2];
+    data[pos + 3] = 255;
 
-        return (255 - diff) | 0;
-    } else {
-        return 0;
-    }
+    // data[pos] += 1;
+    // data[pos + 1] += 1;
+    // data[pos + 2] += 1;
+    // data[pos + 3] = 255;
 }
 
 function hue2rgb(t: number) {
@@ -65,31 +85,43 @@ function hue2rgb(t: number) {
     return 0;
 }
 
-function setup() {
-    const canvas = createCanvas(window.innerWidth, window.innerHeight);
-    canvas.parent("main");
-    loadPixels();
-    data = imageData.data;
-
-    stroke(2);
-    colorMode(HSB, 1);
-
-    for (let i = 0; i < pointCount; i++) {
-        const f = ((i / pointCount) * 2) % 1;
-        const index = i * 3;
-
-        colors[index] = (hue2rgb(f + 1 / 3) * 255) | 0;
-        colors[index + 1] = (hue2rgb(f) * 255) | 0;
-        colors[index + 2] = (hue2rgb(f - 1 / 3) * 255) | 0;
+const [canvas, context] = createCanvas({ onResize: loadPixels, onDrag: onDrag });
+canvas.addEventListener("wheel", (e) => {
+    if(e.deltaY < 0) {
+        scale *= 1.1;
+    } else {
+        scale /= 1.1;
     }
+}); 
+document.getElementById("main").append(canvas);
+loadPixels();
 
-    regen();
+function loadPixels() {
+    pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+    data = pixels.data;
 }
+
+function onDrag(x: number, y: number) {
+    xOff += x;
+    yOff += y;
+}
+
+for (let i = 0; i < pointCount; i++) {
+    const f = ((i / pointCount) * 2) % 1;
+    const index = i * 3;
+
+    colors[index] = (hue2rgb(f + 1 / 3) * 255) | 0;
+    colors[index + 1] = (hue2rgb(f) * 255) | 0;
+    colors[index + 2] = (hue2rgb(f - 1 / 3) * 255) | 0;
+}
+
+regen();
+requestAnimationFrame(draw);
 
 function regen() {
     for (let i = 0; i < 18; i++) {
         // param[i] = Math.random() * 2 - 1;
-        
+
         const rnd = Math.random() * 3;
         if (rnd < 1) {
             param[i] = -1;
@@ -100,11 +132,13 @@ function regen() {
         }
     }
 
+    // load(good[Math.floor(Math.random() * good.length)]);
+    // load("UIZWSZ");
     reset();
 }
 
 function reset() {
-    const s = width * height * 4;
+    const s = pixels.width * pixels.height * 4;
     for (let i = 0; i < s; i += 4) {
         data[i] = 0;
         data[i + 1] = 0;
@@ -146,84 +180,105 @@ function load(str: string) {
     reset();
 }
 
+let last = performance.now();
+
 function draw() {
+    let now = performance.now();
+    let dt = (now - last) / 1000;
+    last = now;
+
+    const hW = pixels.width / 2 + xOff;
+    const hH = pixels.height / 2 + yOff;
+
     // Decrease alpha
-    const s = width * height * 4;
+    const s = pixels.width * pixels.height * 4;
     for (let i = 0; i < s; i += 4) {
-        data[i + 3] *= 0.99;
+        // data[i + 0] -= 1;
+        // data[i + 1] -= 1;
+        // data[i + 2] -= 1;
+        data[i + 3] -= 10;
     }
 
-    for (let step = 0; step < steps; step++) {
+
+    const delta = delta_per_step * speed_mult;
+
+    while (performance.now() - now < 10) {
         let x = t;
         let y = t;
-        let pCount = 0 | 0;
-        let dist = 0 | 0;
-        let changed = 0;
+        let count = 0;
+
+        rolling_delta = rolling_delta * 0.99 + delta * 0.01;
 
         for (let i = 0; i < pointCount; i++) {
-            const nX = x * (x * param[0] + y * param[3] + t * param[4] + param[6]) + y * (y * param[1] + t * param[5] + param[7]) + t * (param[8] + t * param[2]);
-            y = x * (x * param[9] + y * param[12] + t * param[13] + param[15]) + y * (y * param[10] + t * param[14] + param[16]) + t * (param[17] + t * param[11]);
-            x = nX;
+            const l = points[i];
 
-            const sX = x * scalee;
-            const sY = y * scalee;
+            const nX = x * (x * param[0] + y * param[3] + t * param[4] + param[6]) + y * (y * param[1] + t * param[5] + param[7]) + t * (param[8] + t * param[2]);
+            const nY = x * (x * param[9] + y * param[12] + t * param[13] + param[15]) + y * (y * param[10] + t * param[14] + param[16]) + t * (param[17] + t * param[11]);
+
+            x = nX;
+            y = nY;
+
+            const sX = x * scale;
+            const sY = y * scale;
 
             if (sX > -hW && sX < hW && sY > -hH && sY < hH) {
-                pCount++;
+                count++;
+                const xDiff = sX - l.x;
+                const yDiff = sY - l.y;
+                const dist = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
 
-                const p = (((sX + hW) | 0) + ((sY + hH) | 0) * width) | 0;
+                l.x = sX;
+                l.y = sY;
 
-                const c = hPoint(p, i);
-                changed += c;
+                const p = (((sX + hW) | 0) + ((sY + hH) | 0) * pixels.width) | 0;
 
-                const l = points[i];
-                if (l) {
-                    const xDiff = (sX - l.sX) | 0;
-                    const yDiff = (sY - l.sY) | 0;
-                    l.sX = sX;
-                    l.sY = sY;
+                hPoint(p, i);
 
-                    // dist += Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-                    dist += xDiff * xDiff + yDiff * yDiff;
-                } else {
-                    points[i] = {
-                        sX,
-                        sY,
-                    };
-                    dist += 10;
-                }
+                rolling_delta = Math.min(rolling_delta, Math.max(delta / (dist + 1e-5), delta_minimum * speed_mult));
             } else {
-                points[i] = null;
+                l.x = 0;
+                l.y = 0;
             }
         }
 
-        if (pCount !== 0) {
-            // const asdf  = changed / 255;
+        /*if (pCount > 10) {
+            dist /= pCount;
+            const desired = 0.001 / dist; // * (pCount / changed);
 
-            const desired = 5 / Math.sqrt(dist / pCount); // * (pCount / changed);
-
-            delta = delta * (0.99 + desired * 0.01);
+            delta = delta * 0.99 + desired * 0.01;
+            dText.innerText = desired;
 
             delta = Math.min(0.001, delta);
             t += delta / steps;
         } else {
             t += 0.001;
             delta = 1e-10;
-        }
+        }*/
+        if (count == 0) rolling_delta = delta_per_step * 10;
+        t += rolling_delta;
+
+        /*if(pCount == 0) {
+
+        } else {
+            t += 0.000001;
+        }*/
+
+        dText.innerText = rolling_delta.toString();
     }
 
-    const now = performance.now();
-    if (t > tRange || (auto && now - startTime > 120000)) {
+    now = performance.now();
+    if (t > tRange) {
         if (auto) {
             regen();
         } else {
             reset();
         }
-        startTime = now;
     }
 
-    updatePixels();
-    timeText.innerText = t;
-    fps = fps * 0.99 + frameRate() * 0.01;
+    context.putImageData(pixels, 0, 0);
+    timeText.innerText = t.toString();
+    fps = fps * 0.99 + (1 / dt) * 0.01;
     fpsText.innerText = fps.toFixed(2);
+
+    requestAnimationFrame(draw);
 }

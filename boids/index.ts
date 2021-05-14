@@ -1,241 +1,230 @@
-// const constSpeed = 200;
+import { circle, createCanvas, line, triangle } from "../framework.js";
+
+interface Dict<T> {
+    [i: string]: T;
+}
+
 const minSpeed = 100;
 const maxSpeed = 250;
+const wallForce = 500;
+const wallRange = 50;
 
-const maxSteerForce = 100;
+let perceptionRadius = 125;
+let seperateForce = 5000;
+let alignForce = 1;
+let cohesionForce = 1;
 
-const perceptionRadius = 125;
-const avoidRadius = 50;
+
+let canvas: HTMLCanvasElement;
+let context: CanvasRenderingContext2D;
+let boids: Boid[] = [];
+let last = 0;
+
+let els: Dict<HTMLInputElement> = {
+    sep: undefined,
+    align: undefined,
+    coh: undefined,
+    range: undefined,
+
+    dVel: undefined,
+    dAcc: undefined,
+}
 
 class Boid {
     highlight: boolean;
 
+    // position
     x: number;
     y: number;
 
-    dx: number;
-    dy: number;
+    // velocity
+    vx: number;
+    vy: number;
 
-    ang: number;
-
-    ndx: number;
-    ndy: number;
+    // acceleration
+    ax: number;
+    ay: number;
 
     constructor() {
         this.highlight = false;
 
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
 
-        /*this.dx = (Math.random() - 0.5) * 2 * ((minSpeed + maxSpeed) / 2);
-        this.dy = (Math.random() - 0.5) * 2 * ((minSpeed + maxSpeed) / 2); */
-        this.dx = (Math.random() - 0.5) * 2;
-        this.dy = (Math.random() - 0.5) * 2;
+        this.vx = (Math.random() - 0.5) * 2;
+        this.vy = (Math.random() - 0.5) * 2;
 
-        this.ang = Math.atan2(this.dy, this.dx);
-
-        this.ndx = 0;
-        this.ndy = 0;
+        this.ax = 0;
+        this.ay = 0;
     }
 
-    update(dt: number) {
-        this.dx += this.ndx / (1000 / dt);
-        this.dy += this.ndy / (1000 / dt);
+    updateVel() {
+        this.ax = 0;
+        this.ay = 0;
 
-        const speed = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+        // Walls
+        if (this.x < wallRange) {
+            // Left
+            this.ax += wallForce;
+        } else if (this.x > canvas.width - wallRange) {
+            // Right
+            this.ax -= wallForce;
+        }
+
+        if (this.y < wallRange) {
+            // Top
+            this.ay += wallForce;
+        } else if (this.y > canvas.height - wallRange) {
+            // Bottom
+            this.ay -= wallForce;
+        }
+
+        let count = 0;
+        let x1 = 0;
+        let y1 = 0;
+
+        let x2 = 0;
+        let y2 = 0;
+
+        for (const b1 of boids) {
+            if (this === b1) {
+                continue;
+            }
+            const xDiff = b1.x - this.x;
+            const yDiff = b1.y - this.y;
+            const dist = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+
+            if (dist < perceptionRadius) {
+                count++;
+
+                // Separation
+                if (dist != 0) { // divide by 0 protection
+                    this.ax -= (xDiff / (dist * dist)) * seperateForce;
+                    this.ay -= (yDiff / (dist * dist)) * seperateForce;
+                }
+
+                // Alignment 
+                x1 += b1.vx;
+                y1 += b1.vy;
+
+                // Cohesion
+                x2 += b1.x;
+                y2 += b1.y;
+            }
+        }
+
+        if (count > 0) {
+            // Alignment 
+            this.ax += (x1 / count - this.vx) * alignForce;
+            this.ay += (y1 / count - this.vy) * alignForce;
+
+            // Cohesion
+            this.ax += (x2 / count - this.x) * cohesionForce;
+            this.ay += (y2 / count - this.y) * cohesionForce;
+        }
+    }
+
+    updatePos(dt: number) {
+        this.vx += this.ax * dt;
+        this.vy += this.ay * dt;
+
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
 
         if (speed > maxSpeed) {
-            this.dx = (this.dx / speed) * maxSpeed;
-            this.dy = (this.dy / speed) * maxSpeed;
+            this.vx = (this.vx / speed) * maxSpeed;
+            this.vy = (this.vy / speed) * maxSpeed;
         }
 
         if (speed < minSpeed) {
-            this.dx = (this.dx / speed) * minSpeed;
-            this.dy = (this.dy / speed) * minSpeed;
+            this.vx = (this.vx / speed) * minSpeed;
+            this.vy = (this.vy / speed) * minSpeed;
         }
 
-        this.ang = Math.atan2(this.dy, this.dx);
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
 
-        this.x += this.dx / (1000 / dt);
-        this.y += this.dy / (1000 / dt);
-
-        if (this.x > width) {
-            this.x -= width;
+        if (this.x > canvas.width) {
+            this.x -= canvas.width;
         } else if (this.x < 0) {
-            this.x += width;
+            this.x += canvas.width;
         }
 
-        if (this.y > height) {
-            this.y -= height;
+        if (this.y > canvas.height) {
+            this.y -= canvas.height;
         } else if (this.y < 0) {
-            this.y += height;
+            this.y += canvas.height;
         }
     }
 
     draw() {
         if (this.highlight) {
-            stroke(255, 0, 0);
+            if (els.dVel.checked) {
+                context.strokeStyle = "#0f0";
+                line(this.x, this.y, this.x + this.vx, this.y + this.vy);
+            }
+            if (els.dAcc.checked) {
+                context.strokeStyle = "#0ff";
+                line(this.x, this.y, this.x + this.ax, this.y + this.ay);
+            }
 
-            ellipse(this.x, this.y, perceptionRadius);
-            ellipse(this.x, this.y, avoidRadius);
+            context.strokeStyle = "#f00";
+            circle(this.x, this.y, perceptionRadius);
         } else {
-            stroke(128, 128, 255);
+            context.strokeStyle = "#88f";
         }
 
-        push();
-        translate(this.x, this.y);
-        rotate(Math.atan2(this.dy, this.dx));
+        context.save();
+        context.translate(this.x, this.y);
+        context.rotate(Math.atan2(this.vy, this.vx));
         triangle(5, 0, -5, 5, -5, -5);
-
-        pop();
+        context.restore();
         // line(this.x, this.y, this.x + this.dx * 5, this.y + this.dy * 5);
         // ellipse(this.x, this.y, 10);
     }
 }
 
-let boids: Boid[] = [];
-
-function setup() {
-    createCanvas(window.innerWidth, window.innerHeight);
-    // colorMode(HSB, 100);
-    ellipseMode(RADIUS);
-    noFill();
-    // frameRate(60);
-
-    for (let i = 0; i < 100; i++) {
-        boids[i] = new Boid();
-    }
-    boids[0].highlight = true;
+for (const key in els) {
+    els[key] = document.getElementById(key) as HTMLInputElement;
 }
 
-function asdf(x, y, dx, dy) {
-    let len = Math.sqrt(x * x + y * y);
-    x = (x / len) * maxSpeed - dx;
-    y = (y / len) * maxSpeed - dy;
+els.sep.addEventListener("input", (e) => {
+    seperateForce = (els.sep.valueAsNumber / 100) * 10000;
+});
+els.align.addEventListener("input", (e) => {
+    alignForce = (els.align.valueAsNumber / 100) * 2;
+});
+els.coh.addEventListener("input", (e) => {
+    cohesionForce = (els.coh.valueAsNumber / 100) * 2;
+});
+els.range.addEventListener("input", (e) => {
+    perceptionRadius = (els.range.valueAsNumber / 100) * 200;
+});
 
-    len = Math.sqrt(x * x + y * y);
-    if (len > maxSteerForce) {
-        x = (x / len) * maxSteerForce;
-        y = (y / len) * maxSteerForce;
-    }
+[canvas, context] = createCanvas();
 
-    return {
-        x,
-        y
-    };
+for (let i = 0; i < 100; i++) {
+    boids[i] = new Boid();
 }
+boids[0].highlight = true;
+
+last = performance.now();
+requestAnimationFrame(draw);
 
 function draw() {
-    background(0);
+    let now = performance.now();
+    let dt = (now - last) / 1000;
+    last = now;
+
+    context.fillRect(0, 0, canvas.width, canvas.height);
 
     for (const boid of boids) {
-        let count = 0;
-
-        let v1x = 0;
-        let v1y = 0;
-
-        let v2x = 0;
-        let v2y = 0;
-
-        let v3x = 0;
-        let v3y = 0;
-
-        let v4x = 0;
-        let v4y = 0;
-
-        // Walls
-        if (boid.x - perceptionRadius < 0) {
-            // Left
-            v4x += 1;
-        } else if (boid.x + perceptionRadius > width) {
-            // Right
-            v4x -= 1;
-        }
-
-        if (boid.y - perceptionRadius < 0) {
-            // Top
-            v4y += 1;
-        } else if (boid.y + perceptionRadius > height) {
-            // Bottom
-            v4y -= 1;
-        }
-
-        // const ang = Math.atan2(boid.dy, boid.dx);
-
-        for (const b1 of boids) {
-            if (boid === b1) {
-                continue;
-            }
-
-            const xDiff = b1.x - boid.x;
-            const yDiff = b1.y - boid.y;
-            const dist = Math.sqrt((xDiff * xDiff + yDiff * yDiff));
-
-            if (dist > perceptionRadius) {
-                continue;
-            }
-
-            // Wtf is going on
-            /* const angDiff = boid.ang - Math.atan2(yDiff, xDiff);
-            if (Math.abs(angDiff) > 2.35) {
-                continue;
-            } */
-
-            count++;
-
-            // Separation
-            if (dist < avoidRadius) {
-                v1x -= xDiff / (dist * dist);
-                v1y -= yDiff / (dist * dist);
-
-                if (boid.highlight) {
-                    stroke(255 - (1 / dist) * 255);
-                    line(boid.x, boid.y, b1.x, b1.y);
-                }
-            }
-
-            // Alignment
-            v2x += b1.dx;
-            v2y += b1.dy;
-
-            // Cohesion
-            v3x += b1.x;
-            v3y += b1.y;
-        }
-
-        boid.ndx = 0;
-        boid.ndy = 0;
-
-        if (v1x != 0 || v1y != 0) {
-            let v1 = asdf(v1x, v1y, boid.dx, boid.dy);
-            boid.ndx += v1.x;
-            boid.ndy += v1.y;
-        }
-
-
-        if (count > 0) {
-            v2x /= count;
-            v2y /= count;
-
-            v3x /= count;
-            v3y /= count;
-
-            let v2 = asdf(v2x, v2y, boid.dx, boid.dy);
-            let v3 = asdf(v3x - boid.x, v3y - boid.y, boid.dx, boid.dy);
-
-            boid.ndx += v2.x * 0.9 + v3.x * 0.8;
-            boid.ndy += v2.y * 0.9 + v3.y * 0.8;
-        }
-
-        if (v4x != 0 || v4y != 0) {
-            let v4 = asdf(v4x, v4y, boid.dx, boid.dy);
-            boid.ndx += v4.x * 5;
-            boid.ndy += v4.y * 5;
-        }
+        boid.updateVel();
     }
 
     for (const boid of boids) {
-        boid.update(deltaTime);
+        boid.updatePos(dt);
         boid.draw();
     }
+
+    requestAnimationFrame(draw);
 }

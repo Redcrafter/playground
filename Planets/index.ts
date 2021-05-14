@@ -1,6 +1,5 @@
 const G = 1;
-let step = 10000;
-let dt = (1 / step);
+let step = 4;
 
 // manual offset
 let gx = 0;
@@ -9,7 +8,7 @@ let gy = 0;
 let cx = 0;
 let cy = 0;
 // zoom
-let zoom = 1;
+let zoom = 100;
 
 let playing = false;
 
@@ -123,9 +122,9 @@ let planets = [
 let centerPlanet = null;
 let selectedPlanet = null;
 
-window.addEventListener("DOMContentLoaded", setup);
 window.addEventListener("keypress", keyPress);
 window.addEventListener("resize", resize);
+setup();
 
 function setup() {
     canvas = document.getElementById("main") as HTMLCanvasElement;
@@ -284,7 +283,7 @@ function draw() {
         } else {
             for (const planet of planets) {
                 context.moveTo(planet.x, planet.y);
-                context.lineTo(planet.x + planet.dx * 50, planet.y + planet.dy * 50);
+                context.lineTo(planet.x + planet.dx * 50 / zoom, planet.y + planet.dy * 50 / zoom);
             }
         }
 
@@ -292,14 +291,19 @@ function draw() {
         context.stroke();
     }
     if (playing) {
-        for (let i = 0; i < step; i++) {
-            for (const planet of planets) {
-                planet.updateVel(dt);
-            }
+        const count = 100;
+        const dt = 0.01 / count;
 
-            for (const planet of planets) {
-                planet.updatePos(dt);
-            }
+        for (let i = 0; i < step; i++) {
+            for (let j = 0; j < count; j++) {
+                for (const planet of planets) {
+                    planet.updateVel(dt);
+                }
+    
+                for (const planet of planets) {
+                    planet.updatePos(dt);
+                }
+            }            
         }
     }
 
@@ -330,3 +334,5 @@ function draw() {
 
     requestAnimationFrame(draw);
 }
+
+export { }

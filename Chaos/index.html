@@ -6,7 +6,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Chaos</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/p5.js"></script>
         <style>
             body {
                 display: flex;
@@ -31,22 +30,28 @@
 
             #nav {
                 display: none;
+                padding: 5px;
+            }
+
+            #nav input[type=checkbox] {
+                margin-left: 0;
             }
 
             body:hover #nav {
                 display: block;
             }
         </style>
+        <script src="./Chaos.js" type="module"></script>
     </head>
     <body>
         <div id="main"></div>
         <div id="nav">
             Code: <span id="codeText"></span><br>
             <input id="loadInput" type="string" maxlength="6"><button id="loadButton">Load</button><br>
-            <input id="autoInput" type="checkbox">Auto<br>
+            <input id="autoInput" type="checkbox" checked>Auto<br>
             T: <span id="timeText">0</span><br>
+            D: <span id="dText">0</span><br>
             FPS: <span id="fpsText">60</span>
         </div>
-        <script src="./Chaos.js"></script>
     </body>
 </html>

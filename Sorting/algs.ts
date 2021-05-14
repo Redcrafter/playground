@@ -519,7 +519,7 @@ let algos: IDict = {
     BinarySearchTreeSort,
     CircleSort,
     CombSort,
-    CycleSort, // broken
+    CycleSort,
     HeapSort,
     OddEvenSort,
     PancakeSort,

@@ -1,3 +1,5 @@
+import { createCanvas, canvas, context } from "../framework.js";
+
 const enum CellFlags {
     Visited = 1,
 
@@ -7,9 +9,7 @@ const enum CellFlags {
     RightWall = 16
 }
 
-window.addEventListener("DOMContentLoaded", init);
-let canvas: HTMLCanvasElement;
-let context: CanvasRenderingContext2D;
+createCanvas();
 
 const mw = 25;
 const mh = 25;
@@ -19,19 +19,7 @@ let curr = { x: 0, y: 0 };
 let maze = new Uint8Array(mw * mh);
 let currentState = mazeGen;
 
-function init() {
-    canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    window.addEventListener("resize", (e) => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
-
-    context = canvas.getContext("2d");
-    requestAnimationFrame(draw);
-}
+requestAnimationFrame(draw);
 
 function mazeGen() {
     maze[curr.x + curr.y * mw] |= CellFlags.Visited;
