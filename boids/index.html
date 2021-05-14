@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <style>
+            body {
+                margin: 0;
+                background-color: black;
+                overflow: hidden;
+            }
+
+            #box {
+                position: absolute;
+                color: white;
+
+                bottom: 0;
+
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .asdf {
+                text-align: center;
+            }
+        </style>
+        <title>Boids</title>
+        <script src="index.js" type="module"></script>
+    </head>
+
+    <body>
+        <div id="box">
+            <div class="asdf"><input id="sep" type="range"><br>Separation</div>
+            <div class="asdf"><input id="align" type="range"><br>Alignment</div>
+            <div class="asdf"><input id="coh" type="range"><br>Cohesion</div>
+            <div class="asdf"><input id="range" type="range"><br>Visual Range</div>
+            <table>
+                <tr>
+                    <td>Draw Velocity:</td>
+                    <td><input id="dVel" type="checkbox"><br></td>
+                </tr>
+                <tr>
+                    <td>Draw Acceleration:</td>
+                    <td><input id="dAcc" type="checkbox"><br></td>
+                </tr>
+            </table>
+        </div>
+    </body>
+
+</html>

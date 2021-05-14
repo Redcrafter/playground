@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dungeon generator</title>
+        <style>
+            body {
+                background-color: #222;
+                margin: 0;
+                display: flex;
+                vertical-align: middle;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            canvas {
+                margin: auto;
+            }
+
+            #options {
+                position: absolute;
+                background-color: rgba(255, 255, 255, 0.5);
+                border-radius: 5px;
+                padding: 10px;
+            }
+
+            input[type=number] {
+                width: 50px;
+            }
+
+            .grid {
+                display: grid;
+                grid-template-columns: auto auto;
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="main" width="640" height="640"></canvas>
+        <div id="options">
+            <div class="grid">
+                <label>Size</label><input id="size" min="0" value="10" type="number">
+                <label>Create rooms</label><input id="rooms" type="checkbox" checked>
+                <label>Room Count</label><input id="roomCount" min="0" value="100" type="number">
+                <label>Random Connections</label><input id="randConn" type="checkbox">
+                <label>Trim loose ends</label><input id="trimLoose" type="checkbox">
+                <label>Explore Distance</label><input id="explore" type="checkbox">
+            </div>
+            <br>
+            <div>
+                <button id="generate">Generate</button>
+                <button id="randomize">Randomize</button>
+                <input id="random" type="checkbox"><label>Automatic</label>
+            </div>
+        </div>
+        <script src="index.js" type="module"></script>
+    </body>
+
+</html>

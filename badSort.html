@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>The Danger of Naïveté</title>
+    </head>
+
+    <body>
+        <canvas id="mainCanvas"></canvas><br>
+        <script>
+            const width = 1024 + 512;
+            const count = 6;
+
+            let canvas = document.getElementById("mainCanvas");
+            canvas.width = width;
+            canvas.height = 512;
+            let context = canvas.getContext("2d");
+
+            let elements = new Array(count);
+            let map = new Map();
+            let map2 = new Map();
+
+            function shuffleBad(arr) {
+                for (let j = 0; j < count; j++) {
+                    let rnd = Math.floor(Math.random() * count);
+                    [arr[j], arr[rnd]] = [arr[rnd], arr[j]];
+                }
+            }
+
+            function shuffle(arr) {
+                for (let j = count - 1; j > 0; j--) {
+                    let rnd = Math.floor(Math.random() * (j + 1));
+                    [arr[j], arr[rnd]] = [arr[rnd], arr[j]];
+                }
+            }
+
+            for (let i = 0; i < 4000000; i++) {
+                for (let j = 0; j < count; j++) {
+                    elements[j] = j + 1;
+                }
+
+                let res = 0;
+                if (i < 2000000) {
+                    shuffleBad(elements);
+                } else {
+                    shuffle(elements);
+                }
+
+                for (let i = 0; i < count; i++) {
+                    res *= 10;
+                    res += elements[i];
+                }
+
+                if (i < 2000000) {
+                    let g = map.get(res) || 0;
+                    map.set(res, g + 1);
+                } else {
+                    let g = map2.get(res) || 0;
+                    map2.set(res, g + 1);
+                }
+
+
+            }
+
+            let sorted = [];
+            for (const item of map) {
+                sorted.push([item[0], item[1], map2.get(item[0])]);
+            }
+
+            sorted.sort((a, b) => {
+                return a[0] - b[0];
+            });
+
+            let x = 0;
+            let w = width / map.size;
+
+            let hs = 0.1;
+            context.strokeStyle = "#000";
+            context.beginPath();
+            for (const item of sorted) {
+                context.lineTo(x, 512 - item[1] * hs);
+                x += w;
+            }
+            context.stroke();
+
+            x = 0;
+            context.strokeStyle = "red";
+            context.beginPath();
+            for (const item of sorted) {
+                context.lineTo(x, 512 - item[2] * hs);
+                x += w;
+            }
+            context.stroke();
+
+            context.textBaseline = "middle";
+            context.font = 'bold 12px serif';
+
+            context.fillRect(width - 125, 10, 20, 5);
+            context.fillText("Naive", width - 100, 12.5);
+
+            context.fillText("Knuth-Fisher-Yates", width - 100, 32.5);
+            context.fillStyle = "red";
+            context.fillRect(width - 125, 30, 20, 5);
+        </script>
+    </body>
+
+</html>

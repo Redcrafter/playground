@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <style>
+            body {
+                margin: 0;
+                background-color: black;
+                display: flex;
+                overflow: hidden;
+            }
+
+            .text {
+                color: white;
+            }            
+        </style>
+        <title>Langton's ant</title>
+    </head>
+
+    <body>
+        <canvas id="canvas"></canvas>
+        <div>
+            <div>
+                <input id="pattern" type="text" value="LRRRRRLLR">
+                <input id="speed" type="number">
+                <button id="startButton">Start/Stop</button>
+                <button id="resetButton">Reset</button>
+            </div>
+            <div class="text">
+                Hue offset: <input id="hue" type="number" value="0" min="0" max="360">
+            </div>
+            <pre class="text">
+Triangle: RRLRLLRRRRRR
+Squares: RRLRR
+More Squares: LRRRRRLLR
+Spiral: LRRRRLLLRRR
+Random: RLR
+Artistic:
+LLRR
+RLLR
+RRRRLRRRLLRR
+LLRLLLRRRRR
+LLRRLLLRLRRR
+LLRRRLRRRRR
+LRLRLLLLLLLR
+            </pre>
+        </div>
+        <script>
+            let size = window.innerWidth > window.innerHeight ? window.innerHeight : window.innerWidth;
+            let speed = 100;
+            let running = false;
+            let hueOffset = 0;
+
+            let canvas = document.getElementById("canvas");
+            canvas.width = canvas.height = size;
+            let speedInput = document.getElementById("speed");
+            let patternInput = document.getElementById("pattern");
+            let hueInput = document.getElementById("hue");
+            let startButton = document.getElementById("startButton");
+            let resetButton = document.getElementById("resetButton");
+
+            let context = canvas.getContext("2d");
+
+            speedInput.value = speed;
+            speedInput.oninput = () => {
+                speed = parseInt(speedInput.value);
+            }
+
+            hueInput.value = hueOffset;
+            hueInput.oninput = () => {
+                hueOffset = parseInt(hueInput.value);
+                ReDraw();
+            }
+
+            startButton.onclick = () => {
+                running = !running;
+                if (running) {
+                    loop();
+                }
+            }
+            resetButton.onclick = () => {
+                running = false;
+                Reset();
+            }
+
+            function sleep(ms) {
+                return new Promise((resolve) => {
+                    setTimeout(resolve, ms);
+                });
+            }
+
+            function addVec(a, b) {
+                let res = [];
+
+                for (let i = 0; i < a.length; i++) {
+                    res[i] = a[i] + b[i];
+                }
+
+                return res;
+            }
+
+            function matMult(mat, vec) {
+                let ret = new Array(mat.length).fill(0);
+
+                for (let i = 0; i < mat.length; i++) {
+                    for (let j = 0; j < vec.length; j++) {
+                        ret[i] += mat[i][j] * vec[j];
+                    }
+                }
+
+                return ret;
+            }
+
+            function ReDraw() {
+                for (let x = 0; x < size; x++) {
+                    for (let y = 0; y < size; y++) {
+                        let col = grid[x][y];
+                        let dir = dirs[col];
+
+                        let i = (x + y * size) * 4;
+                        let color = hslToRgb(col / dirs.length + hueOffset / 360, 1, 0.5);
+                        img.data[i] = color[0];
+                        img.data[i + 1] = color[1];
+                        img.data[i + 2] = color[2];
+                        img.data[i + 3] = 255;
+                    }
+                }
+
+                context.putImageData(img, 0, 0);
+            }
+
+            function hslToRgb(h, s, l) {
+                let r, g, b;
+
+                if (s == 0) {
+                    r = g = b = l; // achromatic
+                } else {
+                    function hue2rgb(p, q, t) {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1 / 6) return p + (q - p) * 6 * t;
+                        if (t < 1 / 2) return q;
+                        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                        return p;
+                    }
+
+                    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    var p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1 / 3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1 / 3);
+                }
+
+                return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+            }
+
+            let rightRot = [
+                [0, -1],
+                [1, 0]
+            ];
+            let leftRot = [
+                [0, 1],
+                [-1, 0]
+            ];
+
+            let img, dirs, antPos, antDir, grid;
+
+            function Reset() {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                img = context.createImageData(canvas.width, canvas.height);
+
+                dirs = patternInput.value.toLowerCase();
+
+                antPos = [
+                    Math.floor(canvas.width / 2),
+                    Math.floor(canvas.height / 2)
+                ];
+                antDir = [0, -1];
+
+                grid = [];
+                for (let i = 0; i < canvas.width; i++) {
+                    grid[i] = new Array(canvas.height).fill(0);
+                }
+            }
+            Reset();
+
+            async function loop() {
+                while (running) {
+                    for (let i = 0; i < speed; i++) {
+                        let col = grid[antPos[0]][antPos[1]];
+                        if (col == undefined) {
+                            running = false;
+                            return;
+                        }
+
+                        let dir = dirs[col];
+
+                        let i = (antPos[0] + antPos[1] * canvas.width) * 4;
+                        let color = hslToRgb(col / dirs.length + hueOffset / 360, 1, 0.5);
+                        img.data[i] = color[0];
+                        img.data[i + 1] = color[1];
+                        img.data[i + 2] = color[2];
+                        img.data[i + 3] = 255;
+
+                        col = (col + 1) % dirs.length;
+                        grid[antPos[0]][antPos[1]] = col;
+
+                        switch (dir) {
+                            case "l":
+                                antDir = matMult(leftRot, antDir);
+                                break;
+                            case "r":
+                                antDir = matMult(rightRot, antDir);
+                                break;
+                            default:
+                                alert("Invalid pattern");
+                                debugger;
+                                return;
+                        }
+
+                        antPos = addVec(antPos, antDir);
+                    }
+                    context.putImageData(img, 0, 0);
+
+                    await sleep(17);
+                }
+            }
+        </script>
+    </body>
+
+</html>

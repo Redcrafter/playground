@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Modulo multiplication</title>
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+            }
+
+            div {
+                position: absolute;
+                color: white;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.js"></script>
+        <script>
+            function setup() {
+                createCanvas(window.innerWidth, window.innerHeight);
+                colorMode(HSB, 100);
+                // background(0);
+                noFill();
+
+                if (window.innerWidth > window.innerHeight) {
+                    maxSize = window.innerHeight;
+                } else {
+                    maxSize = window.innerWidth;
+                }
+
+                maxSize -= 100;
+
+                nInput.addEventListener("input", (e) => {
+                    n = nInput.valueAsNumber;
+                    mInput.max = n;
+                });
+
+                mInput.addEventListener("input", (e) => {
+                    m = mInput.valueAsNumber;
+                });
+
+                animateButton.addEventListener("click", () => {
+                    animate = !animate;
+                });
+            }
+
+            let maxSize = 0;
+            let n = 20;
+            let m = 10;
+            let animate = false;
+
+            function draw() {
+                translate(width / 2, height / 2);
+                background(0);
+                ellipse(0, 0, maxSize);
+
+                for (let i = 0; i < n; i++) {
+                    const end = (i * m) % n;
+
+                    const sp = getPos(i);
+                    const ep = getPos(end);
+
+                    let length = dist(sp.x, sp.y, ep.x, ep.y);
+                    stroke(magic(length / maxSize) * 100, 100, 100);
+
+                    line(sp.x, sp.y, ep.x, ep.y);
+                }
+
+                if (animate) {
+                    m += 0.005;
+                    mInput.value = m;
+                    m %= n;
+                }
+            }
+
+            function getPos(r) {
+                let x = Math.sin((r / n) * 2 * PI);
+                let y = Math.cos((r / n) * 2 * PI);
+
+                return {
+                    x: x * maxSize / 2,
+                    y: y * maxSize / 2
+                };
+            }
+
+            function magic(x) {
+                x = 3 * (x * x - 0.5);
+                return (x ** 3 + x) / 9.75 + 0.5;
+            }
+        </script>
+    </head>
+
+    <body>
+        <div>
+            N: <input type="range" id="nInput" value="20" min="10" max="1000" step="1">
+            M: <input type="range" id="mInput" min="0" max="10" step="0.01">
+            <button id="animateButton">Animate</button>
+        </div>
+    </body>
+
+</html>
